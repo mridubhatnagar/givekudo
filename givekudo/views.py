@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from users.models import UserProfile
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from datetime import datetime, timedelta
+from .models import Kudo
 
 # Create your views here.
 
@@ -13,22 +15,27 @@ def home(request):
 
 @csrf_exempt
 def givekudo(request):
-	form=KudoForm()
-	if request.user.is_authenticated:
-		print(request.user.id)
-		print(type(request.user.id))
-		form = KudoForm()
-		user_details=UserProfile.objects.get(user_id=request.user.id)
-		org_members=UserProfile.objects.filter(organization_name=user_details.organization_name)
-		form.fields["collegue_name"].choices = [(member.user_id, User.objects.get(id=member.user_id).get_username()) for member in org_members]
-		print(form.fields["collegue_name"].choices)
-		if request.method == "POST":
-			form=KudoForm(data=request.POST)
-			print(form)
-			form.fields["collegue_name"].choices = [(member.user_id, User.objects.get(id=member.user_id).get_username()) for member in org_members]
-			if form.is_valid():
-			    print("yayyyyyyy")
-
-		context = {'form': form}
-		return render(request, 'givekudo/kudo.html', context)
-	return render(request, 'givekudo/home.html')
+    if request.user.is_authenticated:
+        form = KudoForm(request)
+        if request.method == "POST":
+            form = KudoForm(request, data=request.POST)
+            if form.is_valid():
+                today = datetime.now().date()
+                start = today - timedelta(days=today.weekday())
+                end = start + timedelta(days=6)
+                from_user=User.objects.get(pk=request.user.id)
+                to_user=User.objects.get(pk=form.data.get('collegue_name'))
+                kudo_data=Kudo.objects.filter(from_user=from_user).exclude(kudo_date__lt=start).filter(kudo_date__lt=end+timedelta(days=1))
+                kudos_already_given=sum([kudo.kudo_count for kudo in kudo_data])
+                kudos_tobe_given=form.data.get('kudo_count')
+                total_kudos=kudos_already_given + int(kudos_tobe_given)
+                if (total_kudos) > 3:
+                    messages.info(request, 'For current week from {}, to {}. Kudos given by {} exceeds 3. \
+                            Change kudo count to a value less than {}'.format(str(start), str(end), from_user.username, form.data.get('kudo_count')))
+                else:
+                    kudo_details=Kudo.objects.create(from_user=from_user, to_user=to_user, content=form.data.get("message"), kudo_count=form.data.get("kudo_count"))
+                    kudo_details.save()
+                    messages.success(request, 'Thank you for appreciating. Kudo Given!')
+        context = {'form': form}
+        return render(request, 'givekudo/kudo.html', context)
+    return render(request, 'givekudo/home.html')
