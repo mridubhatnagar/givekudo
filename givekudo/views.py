@@ -39,3 +39,19 @@ def givekudo(request):
         context = {'form': form}
         return render(request, 'givekudo/kudo.html', context)
     return render(request, 'givekudo/home.html')
+
+
+def dashboard(request):
+    if request.user.is_authenticated:
+        to_user=User.objects.get(pk=request.user.id)
+        today=datetime.now().date()
+        start=today - timedelta(days=today.weekday())
+        end=start + timedelta(days=6)
+        kudo_data=Kudo.objects.filter(to_user=to_user).exclude(kudo_date__lt=start).filter(kudo_date__lt=end+timedelta(days=1))
+        dashboard_data=[{'from_user':kudo.from_user.username, 
+                         'kudo_count': kudo.kudo_count, 
+                         'date_posted': str(kudo.kudo_date)} for kudo in kudo_data]
+        context = {'dashboard': dashboard_data}
+        return render(request, 'givekudo/dashboard.html', context)
+    return render(request, 'givekudo/home.html')
+

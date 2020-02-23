@@ -18,12 +18,9 @@ def register(request):
             user = form.save()
             profile = profile_form.save(commit=False)
             profile.user = user
-            profile.organization_name = profile_form.cleaned_data.get("organization_name")
+            profile.organization_name = profile_form.cleaned_data.get("organization_name").lower()
             profile.save()
-            username = form.cleaned_data.get("username")
-            password = form.cleaned_data.get("password")
-            user = authenticate(username=username, password=password)
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, 'Account created for username %s' % username)
             return redirect('home')
 
