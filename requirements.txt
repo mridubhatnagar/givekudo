@@ -1,15 +1,8 @@
-awscli==1.17.9
 backcall==0.1.0
-boto3==1.11.9
-botocore==1.14.9
 colorama==0.4.1
 decorator==4.4.1
 dj-database-url==0.5.0
-Django==2.2.9
-django-crispy-forms==1.8.1
-django-heroku==0.3.1
-djangorestframework==3.11.0
-djangorestframework-simplejwt==4.3.0
+Django==2.2.10
 docutils==0.15.2
 gunicorn==20.0.4
 ipdb==0.12.3
@@ -24,7 +17,6 @@ parso==0.6.1
 pexpect==4.8.0
 pickleshare==0.7.5
 prompt-toolkit==2.0.10
-psycopg2==2.8.4
 ptyprocess==0.6.0
 pyasn1==0.4.8
 Pygments==2.5.2
